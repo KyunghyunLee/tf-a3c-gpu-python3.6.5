@@ -2,6 +2,7 @@ import better_exceptions
 import tensorflow as tf
 import numpy as np
 import gym
+import gym.spaces
 from tqdm import tqdm
 
 from network import *
@@ -25,10 +26,15 @@ def main(config,
          UNROLL_STEP,
          MAX_ITERATION,
          **kwargs):
+
     # Initialize Seed
     tf.set_random_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.reset_default_graph()
+    conf = tf.ConfigProto(device_count={"CPU": 16, "GPU": 0},
+        inter_op_parallelism_threads=128,
+        intra_op_parallelism_threads=128)
+    sess = tf.Session(config=conf)
 
     sample_env = gym.make(GAME)
     nA = sample_env.action_space.n
@@ -42,7 +48,7 @@ def main(config,
                             entropy_beta=ENTROPY_BETA)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
-                       ActorCritic(nA,master=master_ac,device_name=DEVICE,scope_name='Thread%02d'%i,
+                       ActorCritic(nA,master=master_ac,device_name="/cpu:{}".format(i),scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
                                    entropy_beta=ENTROPY_BETA),
                        unroll_step=UNROLL_STEP,
@@ -81,7 +87,6 @@ def main(config,
     # saver and sessions
     saver = tf.train.Saver(var_list=master_ac.train_vars,max_to_keep = 3)
 
-    sess = tf.Session()
     sess.graph.finalize()
 
     sess.run(init_op)
@@ -97,7 +102,7 @@ def main(config,
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess,coord=coord)
-        for step in tqdm(xrange(MAX_ITERATION)) :
+        for step in tqdm(range(MAX_ITERATION)) :
             if coord.should_stop() :
                 break
 
@@ -110,7 +115,7 @@ def main(config,
 
             if( (step+1) % SAVE_PERIOD == 0 ):
                 saver.save(sess,LOG_DIR+'/model.ckpt',global_step=step+1)
-    except Exception, e:
+    except Exception as e:
         coord.request_stop(e)
     finally :
         coord.request_stop()
@@ -124,7 +129,7 @@ def get_default_param():
     return {
         'GAME' : 'Breakout-v0',
         'DISCOUNT_FACTOR':0.99,
-        'DEVICE' : '/gpu:0',
+        'DEVICE' : '/cpu:0',
 
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
@@ -134,7 +139,7 @@ def get_default_param():
         'GRAD_CLIP':0.1,
         'ENTROPY_BETA':0.01,
 
-        'NUM_THREADS':4,
+        'NUM_THREADS':8,
         'AGENT_PER_THREADS':64,
         'UNROLL_STEP':5,
         'MAX_ITERATION':1000000

@@ -4,6 +4,7 @@ import scipy.misc
 import os
 import random
 from functools import partial
+import imresize
 
 from history_buffer import *
 
@@ -13,7 +14,8 @@ def _preprocess_o(o,image_size) :
     y = 0.2126 * o[:, :, 0] + 0.7152 * o[:, :, 1] + 0.0722 * o[:, :, 2]
     y = y.astype(np.uint8)
     #Scipy actually requires WHC images, but it doesn't matter.
-    resized = scipy.misc.imresize(y, image_size)
+    #resized = scipy.misc.imresize(y, image_size)
+    resized = imresize.imresize(y, output_shape=image_size)
     return np.expand_dims(resized.astype(np.float32),axis=2)
 
 class A3CGroupAgent():
