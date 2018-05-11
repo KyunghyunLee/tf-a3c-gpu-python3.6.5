@@ -46,32 +46,33 @@ class ActorCritic():
                  learning_rate,decay,grad_clip,entropy_beta,
                  state_shape=[84,84,4],
                  master=None, device_name='/gpu:0', scope_name='master'):
-        self.state = tf.placeholder(tf.float32,[None]+state_shape)
-        block, self.scope  = ActorCritic._build_shared_block(self.state,scope_name)
-        self.policy, self.log_softmax_policy = ActorCritic._build_policy(block,nA,scope_name)
-        self.value = ActorCritic._build_value(block,scope_name)
+        with tf.device(device_name) :
+            self.state = tf.placeholder(tf.float32,[None]+state_shape)
+            block, self.scope  = ActorCritic._build_shared_block(self.state,scope_name)
+            self.policy, self.log_softmax_policy = ActorCritic._build_policy(block,nA,scope_name)
+            self.value = ActorCritic._build_value(block,scope_name)
 
-        self.train_vars = sorted(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.scope.name), key=lambda v:v.name)
-        if( master is not None ) :
-            self.sync_op= self._sync_op(master)
-            self.action = tf.placeholder(tf.int32,[None,])
-            self.target_value = tf.placeholder(tf.float32,[None,])
+            self.train_vars = sorted(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.scope.name), key=lambda v:v.name)
+            if( master is not None ) :
+                self.sync_op= self._sync_op(master)
+                self.action = tf.placeholder(tf.int32,[None,])
+                self.target_value = tf.placeholder(tf.float32,[None,])
 
-            advantage = self.target_value - self.value
-            entropy = tf.reduce_sum(-1. * self.policy * self.log_softmax_policy,axis=1)
-            log_p_s_a = tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA),axis=1)
+                advantage = self.target_value - self.value
+                entropy = tf.reduce_sum(-1. * self.policy * self.log_softmax_policy,axis=1)
+                log_p_s_a = tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA),axis=1)
 
-            self.policy_loss = tf.reduce_mean(tf.stop_gradient(advantage)*log_p_s_a)
-            self.entropy_loss = tf.reduce_mean(entropy)
-            self.value_loss = tf.reduce_mean(advantage**2)
+                self.policy_loss = tf.reduce_mean(tf.stop_gradient(advantage)*log_p_s_a)
+                self.entropy_loss = tf.reduce_mean(entropy)
+                self.value_loss = tf.reduce_mean(advantage**2)
 
-            loss = -self.policy_loss - entropy_beta* self.entropy_loss + self.value_loss
-            self.gradients = tf.gradients(loss,self.train_vars)
-            clipped_gs = [tf.clip_by_average_norm(g,grad_clip) for g in self.gradients]
-            self.train_op = master.optimizer.apply_gradients(zip(clipped_gs,master.train_vars))
-        else :
-            #self.optimizer = tf.train.AdamOptimizer(learning_rate,beta1=BETA)
-            self.optimizer = tf.train.RMSPropOptimizer(learning_rate,decay=decay,use_locking=True)
+                loss = -self.policy_loss - entropy_beta* self.entropy_loss + self.value_loss
+                self.gradients = tf.gradients(loss,self.train_vars)
+                clipped_gs = [tf.clip_by_average_norm(g,grad_clip) for g in self.gradients]
+                self.train_op = master.optimizer.apply_gradients(zip(clipped_gs,master.train_vars))
+            else :
+                #self.optimizer = tf.train.AdamOptimizer(learning_rate,beta1=BETA)
+                self.optimizer = tf.train.RMSPropOptimizer(learning_rate,decay=decay,use_locking=True)
 
     def initialize(self,sess):
         self.sess=sess

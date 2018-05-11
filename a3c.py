@@ -31,7 +31,7 @@ def main(config,
     tf.set_random_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.reset_default_graph()
-    conf = tf.ConfigProto(device_count={"CPU": 16, "GPU": 0},
+    conf = tf.ConfigProto(device_count={"CPU": 16, "GPU": 1},
         inter_op_parallelism_threads=128,
         intra_op_parallelism_threads=128)
     sess = tf.Session(config=conf)
@@ -129,7 +129,7 @@ def get_default_param():
     return {
         'GAME' : 'Breakout-v0',
         'DISCOUNT_FACTOR':0.99,
-        'DEVICE' : '/cpu:0',
+        'DEVICE' : '/gpu:0',
 
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
@@ -139,7 +139,7 @@ def get_default_param():
         'GRAD_CLIP':0.1,
         'ENTROPY_BETA':0.01,
 
-        'NUM_THREADS':8,
+        'NUM_THREADS':16,
         'AGENT_PER_THREADS':64,
         'UNROLL_STEP':5,
         'MAX_ITERATION':1000000
