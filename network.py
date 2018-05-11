@@ -69,7 +69,7 @@ class ActorCritic():
                 loss = -self.policy_loss - entropy_beta* self.entropy_loss + self.value_loss
                 self.gradients = tf.gradients(loss,self.train_vars)
                 self.var_norms = tf.global_norm(self.train_vars)
-                clipped_gs = [tf.clip_by_average_norm(g,grad_clip, 40.0) for g in self.gradients]
+                clipped_gs, grad_norm = tf.clip_by_global_norm(self.gradients,grad_clip)
                 self.train_op = master.optimizer.apply_gradients(zip(clipped_gs,master.train_vars))
             else :
                 #self.optimizer = tf.train.AdamOptimizer(learning_rate,beta1=BETA)
@@ -90,8 +90,8 @@ class ActorCritic():
 
     def update(self, s, a, v):
         assert( self.scope.name != 'master')
-        policy_loss,entropy_loss,value_loss,_,_ = \
-            self.sess.run([self.policy_loss,self.entropy_loss,self.value_loss,self.train_op,self.var_norms],
+        policy_loss,entropy_loss,value_loss,_,_,_ = \
+            self.sess.run([self.policy_loss,self.entropy_loss,self.value_loss,self.train_op,self.var_norms, self.grad_norm],
                           feed_dict={self.state: s,
                                      self.action: a,
                                      self.target_value : v})
