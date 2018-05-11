@@ -139,7 +139,7 @@ def get_default_param():
         'GRAD_CLIP':0.1,
         'ENTROPY_BETA':0.01,
 
-        'NUM_THREADS':16,
+        'NUM_THREADS':8,
         'AGENT_PER_THREADS':64,
         'UNROLL_STEP':5,
         'MAX_ITERATION':1000000
