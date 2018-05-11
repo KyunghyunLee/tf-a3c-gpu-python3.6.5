@@ -73,8 +73,8 @@ class ActorCritic():
                 self.grad_norm = grad_norm
                 self.train_op = master.optimizer.apply_gradients(zip(clipped_gs,master.train_vars))
             else :
-                #self.optimizer = tf.train.AdamOptimizer(learning_rate,beta1=BETA)
-                self.optimizer = tf.train.RMSPropOptimizer(learning_rate,decay=decay,use_locking=True)
+                self.optimizer = tf.train.AdamOptimizer(learning_rate)
+                #self.optimizer = tf.train.RMSPropOptimizer(learning_rate,decay=decay,use_locking=True)
 
     def initialize(self,sess):
         self.sess=sess

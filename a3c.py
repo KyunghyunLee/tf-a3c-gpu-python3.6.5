@@ -134,7 +134,7 @@ def get_default_param():
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
 
-        'LEARNING_RATE':0.00025,
+        'LEARNING_RATE': 1e-4,
         'DECAY':0.99,
         'GRAD_CLIP':40.0,
         'ENTROPY_BETA':0.01,
