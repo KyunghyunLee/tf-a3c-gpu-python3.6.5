@@ -107,10 +107,10 @@ class A3CGroupAgent():
             actions = np.stack(actions,axis=0).astype(np.int32)
             target_values = np.stack(values,axis=0).astype(np.float32)
 
-            policy_loss, entropy_loss, value_loss = self.ac.update(states,actions,target_values)
+            policy_loss, entropy_loss, value_loss, v_norm, g_norm = self.ac.update(states,actions,target_values)
             self.ac.sync()
 
-            return policy_loss, entropy_loss, value_loss
+            return policy_loss, entropy_loss, value_loss, v_norm, g_norm
 
         data = tf.py_func(_func,[],[tf.float32,tf.float32,tf.float32],stateful=True)
         return queue.enqueue(data)

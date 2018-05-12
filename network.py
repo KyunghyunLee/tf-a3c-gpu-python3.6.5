@@ -91,12 +91,12 @@ class ActorCritic():
 
     def update(self, s, a, v):
         assert( self.scope.name != 'master')
-        policy_loss,entropy_loss,value_loss,_,_,_ = \
+        policy_loss,entropy_loss,value_loss,_,v_norm,g_norm = \
             self.sess.run([self.policy_loss,self.entropy_loss,self.value_loss,self.train_op,self.var_norms, self.grad_norm],
                           feed_dict={self.state: s,
                                      self.action: a,
                                      self.target_value : v})
-        return policy_loss,entropy_loss,value_loss
+        return policy_loss,entropy_loss,value_loss, v_norm, g_norm
 
     def sync(self):
         if( self.scope.name == 'master' ) :

@@ -71,7 +71,7 @@ def main(config,
         max_r = max([g_agent.reward_info()[1] for g_agent in group_agents])
         return total_eps,avg_r,max_r
     train_info = tf.py_func(_train_info,[],[tf.int64,tf.float64,tf.float64],stateful=True)
-    pl, el, vl = loss
+    pl, el, vl, v_norm, g_norm = loss
     total_eps, avg_r, max_r = train_info
 
     tf.summary.scalar('learning_rate',learning_rate)
@@ -81,6 +81,8 @@ def main(config,
     tf.summary.scalar('total_episodes',total_eps)
     tf.summary.scalar('average_rewards',avg_r)
     tf.summary.scalar('maximum_rewards',max_r)
+    tf.summary.scalar('var_norm', v_norm)
+    tf.summary.scalar('gradient_norm', g_norm)
     summary_op = tf.summary.merge_all()
     config_summary = tf.summary.text('TrainConfig', tf.convert_to_tensor(config.as_matrix()), collections=[])
 
