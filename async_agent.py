@@ -112,7 +112,7 @@ class A3CGroupAgent():
 
             return policy_loss, entropy_loss, value_loss, v_norm, g_norm
 
-        data = tf.py_func(_func,[],[tf.float32,tf.float32,tf.float32],stateful=True)
+        data = tf.py_func(_func,[],[tf.float32,tf.float32,tf.float32,tf.float32,tf.float32],stateful=True)
         return queue.enqueue(data)
 
     def num_episodes(self):
