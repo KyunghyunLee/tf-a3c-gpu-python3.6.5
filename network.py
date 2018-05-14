@@ -79,7 +79,7 @@ class ActorCritic():
                 log_p_s_a = -tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA, dtype=tf.float32),axis=1) # cross entropy(p=one_hot, q=policy)
 
                 self.entropy_loss = tf.reduce_mean(entropy)
-                self.policy_loss = -tf.reduce_mean(tf.stop_gradient(advantage)*log_p_s_a) - entropy_beta*self.entropy_loss
+                self.policy_loss = tf.reduce_mean(tf.stop_gradient(advantage)*log_p_s_a) - entropy_beta*self.entropy_loss
                 self.value_loss = tf.reduce_mean(tf.square(advantage_hubber))
 
                 loss = self.value_loss * 0.5 + self.policy_loss 
