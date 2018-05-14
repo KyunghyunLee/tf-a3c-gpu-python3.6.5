@@ -6,7 +6,7 @@ from async_agent import *
 from commons.ops import *
 
 #TODO: BATCH UPDATE?
-EPSILON=1e-16
+EPSILON=1e-12
 class ActorCritic():
     @staticmethod
     def _build_shared_block(state,scope_name):
@@ -29,7 +29,7 @@ class ActorCritic():
     def _build_policy(block,action_n,scope_name):
         with tf.variable_scope(scope_name):
             _t = Linear('linear-policy',256,action_n)(block)
-            _logit = tf.maximum(1.0/(1.0 + tf.exp(-60.0 * _t)), EPSILON)
+            _logit = tf.maximum(1.0/(1.0 + tf.exp(-20.0 * _t)), EPSILON)
             softmax_policy = tf.nn.softmax(_logit)
             log_softmax_policy = tf.nn.log_softmax(_logit) #For numerical stability
             return softmax_policy, log_softmax_policy
