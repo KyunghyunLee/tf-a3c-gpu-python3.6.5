@@ -15,13 +15,13 @@ def _preprocess_o(o,image_size) :
     # obsv : [210, 180, 3] HWC
     # preprocessing code is partially adopted from https://github.com/carpedm20/deep-rl-tensorflow
     y = 0.2126 * o[:, :, 0] + 0.7152 * o[:, :, 1] + 0.0722 * o[:, :, 2]
-    y = y.astype(np.uint8)/255.0
+    y = y.astype(np.uint8)
     #Scipy actually requires WHC images, but it doesn't matter.
     #resized = scipy.misc.imresize(y, image_size)
     #resized = imresize.imresize(y, output_shape=image_size)
     #resized = np.resize(y, image_size)
     resized = cv.resize(y, dsize=image_size, interpolation=cv.INTER_CUBIC)
-    return np.expand_dims(resized.astype(np.float32),axis=2)
+    return np.expand_dims(resized.astype(np.float32)/255.0,axis=2)
 
 class A3CGroupAgent():
     def __init__(self,envs,actor_critic,unroll_step,discount_factor,
