@@ -14,12 +14,14 @@ def main(config,
          LOG_DIR,
          SAVE_PERIOD,
          SUMMARY_PERIOD,
+         UPDATE_GRAD_CLIP,
          GAME,
          DISCOUNT_FACTOR,
          DEVICE,
          LEARNING_RATE,
          DECAY,
-         GRAD_CLIP,
+         GRAD_BETA,
+         MAX_GRAD_CLIP,
          ENTROPY_BETA,
          NUM_THREADS,
          AGENT_PER_THREADS,
@@ -39,17 +41,18 @@ def main(config,
     sample_env = gym.make(GAME)
     nA = sample_env.action_space.n
 
+    estimated_grad_clip = MAX_GRAD_CLIP
     # define actor critic networks and environments
     global_step = tf.Variable(0, trainable=False)
     learning_rate = tf.train.polynomial_decay(LEARNING_RATE,global_step,MAX_ITERATION//2,
                                               LEARNING_RATE*0.1)
     master_ac = ActorCritic(nA,device_name=DEVICE,
-                            learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
+                            learning_rate=learning_rate,decay=DECAY,
                             entropy_beta=ENTROPY_BETA)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
                        ActorCritic(nA,master=master_ac,device_name="/cpu:{}".format(i),scope_name='Thread%02d'%i,
-                                   learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
+                                   learning_rate=learning_rate,decay=DECAY,
                                    entropy_beta=ENTROPY_BETA),
                        unroll_step=UNROLL_STEP,
                        discount_factor=DISCOUNT_FACTOR,
@@ -57,7 +60,7 @@ def main(config,
         for i in range(NUM_THREADS)]
 
     queue = tf.FIFOQueue(capacity=NUM_THREADS*10,
-                            dtypes=[tf.float32,tf.float32,tf.float32,tf.float32,tf.float32],)
+                            dtypes=[tf.float32,tf.float32,tf.float32,tf.float32,tf.float32,tf.float32],)
     qr = tf.train.QueueRunner(queue, [g_agent.enqueue_op(queue) for g_agent in group_agents])
     tf.train.queue_runner.add_queue_runner(qr)
     loss = queue.dequeue()
@@ -71,8 +74,9 @@ def main(config,
         max_r = max([g_agent.reward_info()[1] for g_agent in group_agents])
         return total_eps,avg_r,max_r
     train_info = tf.py_func(_train_info,[],[tf.int64,tf.float64,tf.float64],stateful=True)
-    pl, el, vl, v_norm, g_norm = loss
+    pl, el, vl, v_norm, g_norm, local_grad_clip = loss
     total_eps, avg_r, max_r = train_info
+
 
     tf.summary.scalar('learning_rate',learning_rate)
     tf.summary.scalar('policy_loss',pl)
@@ -83,6 +87,7 @@ def main(config,
     tf.summary.scalar('maximum_rewards',max_r)
     tf.summary.scalar('var_norm', v_norm)
     tf.summary.scalar('gradient_norm', g_norm)
+    tf.summary.scalar('local_grad_clip', local_grad_clip)
     summary_op = tf.summary.merge_all()
     config_summary = tf.summary.text('TrainConfig', tf.convert_to_tensor(config.as_matrix()), collections=[])
 
@@ -108,15 +113,19 @@ def main(config,
             if coord.should_stop() :
                 break
 
-            (pl,el,vl,v_norm,g_norm), summary_str, (total_eps,avg_r,max_r),_ = sess.run([loss, summary_op, train_info, increase_step])
+            (pl,el,vl,v_norm,g_norm,local_grad_clip), summary_str, (total_eps,avg_r,max_r),_ = sess.run([loss, summary_op, train_info, increase_step])
             if( step % SUMMARY_PERIOD == 0 ):
                 summary_writer.add_summary(summary_str,step)
                 summary_writer_eps.add_summary(summary_str,total_eps)
-                tqdm.write('step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v-norm:%.5f, g_norm:%.5f'%
-                        (step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm))
+                tqdm.write('step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v-norm:%.5f, g_norm:%.5f, local_grad_clip: %.5f'%
+                        (step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm, local_grad_clip))
 
             if( (step+1) % SAVE_PERIOD == 0 ):
                 saver.save(sess,LOG_DIR+'/model.ckpt',global_step=step+1)
+
+            if( step % UPDATE_GRAD_CLIP == 0 ):
+              estimated_grad_clip = min(MAX_GRAD_CLIP,g_norm * (1.0 - GRAD_BETA) + estimated_grad_clip * GRAD_BETA)
+              master_ac.update_grad_clip( estiamted_grad_clip )
     except Exception as e:
         coord.request_stop(e)
     finally :
@@ -135,10 +144,12 @@ def get_default_param():
 
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
+        'UPDATE_GRAD_CLIP': 1000,
 
         'LEARNING_RATE': 1e-4,
         'DECAY':0.99,
-        'GRAD_CLIP':0.2,
+        'MAX_GRAD_CLIP':0.2,
+        'GRAD_BETA':0.95,
         'ENTROPY_BETA':0.01,
 
         'NUM_THREADS':4,
