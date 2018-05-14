@@ -148,9 +148,9 @@ def get_default_param():
         'UPDATE_GRAD_CLIP': 1000,
 
 
-        'LEARNING_RATE': 1.0,
+        'LEARNING_RATE': 1e-4,
         'DECAY':0.99,
-        'MAX_GRAD_CLIP':0.00002,
+        'MAX_GRAD_CLIP':0.02,
         'GRAD_BETA':0.95,
         'ENTROPY_BETA':0.01,
 
