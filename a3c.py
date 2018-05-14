@@ -48,11 +48,13 @@ def main(config,
                                               LEARNING_RATE*0.1)
     master_ac = ActorCritic(nA,device_name=DEVICE,
                             learning_rate=learning_rate,decay=DECAY,
+                            grad_clip = MAX_GRAD_CLIP,
                             entropy_beta=ENTROPY_BETA)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
                        ActorCritic(nA,master=master_ac,device_name="/cpu:{}".format(i),scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,
+                                   grad_clip = MAX_GRAD_CLIP,
                                    entropy_beta=ENTROPY_BETA),
                        unroll_step=UNROLL_STEP,
                        discount_factor=DISCOUNT_FACTOR,
@@ -146,7 +148,7 @@ def get_default_param():
         'SUMMARY_PERIOD':100,
         'UPDATE_GRAD_CLIP': 1000,
 
-        'LEARNING_RATE': 1e-4,
+        'LEARNING_RATE': 1.0,
         'DECAY':0.99,
         'MAX_GRAD_CLIP':0.2,
         'GRAD_BETA':0.95,
