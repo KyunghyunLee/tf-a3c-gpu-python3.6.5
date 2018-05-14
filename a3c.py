@@ -125,7 +125,7 @@ def main(config,
 
             if( step % UPDATE_GRAD_CLIP == 0 ):
               estimated_grad_clip = min(MAX_GRAD_CLIP,g_norm * (1.0 - GRAD_BETA) + estimated_grad_clip * GRAD_BETA)
-              master_ac.update_grad_clip( sess,estimated_grad_clip )
+              master_ac.update_grad_clip( sess, estimated_grad_clip )
     except Exception as e:
         coord.request_stop(e)
     finally :

@@ -45,8 +45,6 @@ class ActorCritic():
         ops.append( self.grad_clip.assign(master.grad_clip) )
         return tf.group(*ops)
 
-    def update_grad_clip(self, sess, value):
-      return sess.run([self.update_grad_clip], feed_dict={self.input_grad_clip: value})
 
     def __init__(self, nA,
                  learning_rate,decay,entropy_beta,
@@ -60,7 +58,7 @@ class ActorCritic():
             block, self.scope  = ActorCritic._build_shared_block(self.state,scope_name)
             self.policy, self.log_softmax_policy = ActorCritic._build_policy(block,nA,scope_name)
             self.value = ActorCritic._build_value(block,scope_name)
-            self.update_grad_clip = self.grad_clip.assign(self.input_grad_clip)
+            self._update_grad_clip = self.grad_clip.assign(self.input_grad_clip)
 
             self.train_vars = sorted(tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.scope.name), key=lambda v:v.name)
             if( master is not None ) :
@@ -92,6 +90,9 @@ class ActorCritic():
         self.sess=sess
         if( self.scope.name != 'master' ):
             self.sync()
+
+    def update_grad_clip(self, sess, value):
+        return sess.run([self._update_grad_clip], feed_dict={self.input_grad_clip: value})
 
     def get_policy(self, s):
         return self.sess.run(self.policy,
