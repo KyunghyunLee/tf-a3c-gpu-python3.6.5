@@ -108,7 +108,7 @@ def main(config,
             if coord.should_stop() :
                 break
 
-            (pl,el,vl), summary_str, (total_eps,avg_r,max_r),_ = sess.run([loss, summary_op, train_info, increase_step])
+            (pl,el,vl,v_norm,g_norm), summary_str, (total_eps,avg_r,max_r),_ = sess.run([loss, summary_op, train_info, increase_step])
             if( step % SUMMARY_PERIOD == 0 ):
                 summary_writer.add_summary(summary_str,step)
                 summary_writer_eps.add_summary(summary_str,total_eps)
