@@ -119,8 +119,7 @@ def main(config,
             if( step % SUMMARY_PERIOD == 0 ):
                 summary_writer.add_summary(summary_str,step)
                 summary_writer_eps.add_summary(summary_str,total_eps)
-                tqdm.write('step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v-norm:%.5f, g_norm:%.5f, local_grad_clip: %.5f'%
-                        (step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm, local_grad_clip))
+                tqdm.write( 'step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v-norm:%.5f, g_norm:%.5f, local_grad_clip: %.5f'%(step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm, local_grad_clip) )
 
             if( (step+1) % SAVE_PERIOD == 0 ):
                 saver.save(sess,LOG_DIR+'/model.ckpt',global_step=step+1)
