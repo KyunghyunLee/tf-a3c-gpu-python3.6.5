@@ -1,3 +1,5 @@
+import pdb
+import warnings
 import tensorflow as tf
 import numpy as np
 import scipy.misc
@@ -13,7 +15,7 @@ def _preprocess_o(o,image_size) :
     # obsv : [210, 180, 3] HWC
     # preprocessing code is partially adopted from https://github.com/carpedm20/deep-rl-tensorflow
     y = 0.2126 * o[:, :, 0] + 0.7152 * o[:, :, 1] + 0.0722 * o[:, :, 2]
-    y = y.astype(np.uint8)
+    y = y.astype(np.uint8)/255.0
     #Scipy actually requires WHC images, but it doesn't matter.
     #resized = scipy.misc.imresize(y, image_size)
     #resized = imresize.imresize(y, output_shape=image_size)
