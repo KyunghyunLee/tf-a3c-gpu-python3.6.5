@@ -149,7 +149,7 @@ def get_default_param():
 
         'LEARNING_RATE': 1.0,
         'DECAY':0.99,
-        'MAX_GRAD_CLIP':0.2,
+        'MAX_GRAD_CLIP':1.0,
         'GRAD_BETA':0.95,
         'ENTROPY_BETA':0.01,
 
