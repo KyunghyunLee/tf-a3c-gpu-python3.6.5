@@ -145,12 +145,12 @@ def get_default_param():
 
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
-        'UPDATE_GRAD_CLIP': 1000,
+        'UPDATE_GRAD_CLIP': 10,
 
 
         'LEARNING_RATE': 1e-4,
         'DECAY':0.99,
-        'MAX_GRAD_CLIP':0.02,
+        'MAX_GRAD_CLIP':1.0,
         'GRAD_BETA':0.95,
         'ENTROPY_BETA':0.01,
 

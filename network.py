@@ -98,7 +98,7 @@ class ActorCritic():
                 with tf.control_dependencies([train_optim]):
                     self.train_op = tf.group( master.ema_op )
             else :
-                self.ema = tf.train.ExponentialMovingAverage(decay=0.999995, zero_debias=True)
+                self.ema = tf.train.ExponentialMovingAverage(decay=0.9995, zero_debias=True)
                 self.ema_op = self.ema.apply(self.train_vars)
 
                 self.ema_var_list = [self.ema.average(e_var) for e_var in self.train_vars]
