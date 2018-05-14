@@ -147,6 +147,7 @@ def get_default_param():
         'SUMMARY_PERIOD':100,
         'UPDATE_GRAD_CLIP': 1000,
 
+
         'LEARNING_RATE': 1.0,
         'DECAY':0.99,
         'MAX_GRAD_CLIP':0.00002,
