@@ -21,7 +21,7 @@ def _preprocess_o(o,image_size) :
     #resized = imresize.imresize(y, output_shape=image_size)
     #resized = np.resize(y, image_size)
     resized = cv.resize(y, dsize=image_size, interpolation=cv.INTER_CUBIC)
-    return np.expand_dims(resized.astype(np.float32)/255.0,axis=2)
+    return np.expand_dims(resized.astype(np.float32),axis=2)
 
 class A3CGroupAgent():
     def __init__(self,envs,actor_critic,unroll_step,discount_factor,

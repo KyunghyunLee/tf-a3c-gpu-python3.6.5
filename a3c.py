@@ -116,7 +116,7 @@ def main(config,
                 break
 
             (pl,el,vl,v_norm,g_norm,local_grad_clip), summary_str, (total_eps,avg_r,max_r),_ = sess.run([loss, summary_op, train_info, increase_step])
-            if( step % SUMMARY_PERIOD == 0 ):
+            if( step % SUMMARY_PERIOD == 0 or step < 1000 ):
                 summary_writer.add_summary(summary_str,step)
                 summary_writer_eps.add_summary(summary_str,total_eps)
                 tqdm.write( 'step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v-norm:%.5f, g_norm:%.5f, local_grad_clip: %.5f'%(step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm, local_grad_clip) )
@@ -149,7 +149,7 @@ def get_default_param():
 
         'LEARNING_RATE': 1.0,
         'DECAY':0.99,
-        'MAX_GRAD_CLIP':1.0,
+        'MAX_GRAD_CLIP':0.00002,
         'GRAD_BETA':0.95,
         'ENTROPY_BETA':0.01,
 
