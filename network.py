@@ -29,8 +29,9 @@ class ActorCritic():
     def _build_policy(block,action_n,scope_name):
         with tf.variable_scope(scope_name):
             _t = Linear('linear-policy',256,action_n)(block)
-            softmax_policy = tf.nn.softmax(tf.maximum(_t, EPSILON))
-            log_softmax_policy = tf.nn.log_softmax(tf.maximum(_t, EPSILON)) #For numerical stability
+            _logit = tf.maximum(1.0/(1.0 - tf.exp(-60.0 * _t)), EPSILON)
+            softmax_policy = tf.nn.softmax(_logit)
+            log_softmax_policy = tf.nn.log_softmax(_logit) #For numerical stability
             return softmax_policy, log_softmax_policy
 
     @staticmethod
