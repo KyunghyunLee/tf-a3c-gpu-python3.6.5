@@ -108,7 +108,6 @@ class A3CGroupAgent():
             states = np.stack(states,axis=0)
             actions = np.stack(actions,axis=0).astype(np.int32)
             target_values = np.stack(values,axis=0).astype(np.float32)
-
             policy_loss, entropy_loss, value_loss, v_norm, g_norm, grad_clip = self.ac.update(states,actions,target_values)
             self.ac.sync()
 
