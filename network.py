@@ -70,7 +70,7 @@ class ActorCritic():
 
                 #advantage = self.target_value - self.value
                 adv_err = tf.subtract( self.target_value, self.value )
-                advantage = tf.where(tf.less(x,y), tf.sqrt(tf.square(adv_err)), tf.abs(adv_err))
+                advantage = tf.where(tf.less(self.target_value,self.value), tf.sqrt(tf.square(adv_err)), tf.abs(adv_err))
                 entropy = -tf.reduce_sum(self.policy * self.log_softmax_policy,axis=1)
                 log_p_s_a = tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA, dtype=tf.float32),axis=1)
 
