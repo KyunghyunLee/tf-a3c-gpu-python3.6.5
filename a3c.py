@@ -138,7 +138,7 @@ def get_default_param():
 
         'LEARNING_RATE': 1e-4,
         'DECAY':0.99,
-        'GRAD_CLIP':40.0,
+        'GRAD_CLIP':1.0,
         'ENTROPY_BETA':0.01,
 
         'NUM_THREADS':4,

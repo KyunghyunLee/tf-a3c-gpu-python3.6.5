@@ -39,7 +39,7 @@ class ActorCritic():
             return _t
 
     def _sync_op(self,master) :
-        ops = [ tf.stop_gradient(my.assign(master)) for my,master in zip(self.train_vars,master.train_vars)]
+        ops = [ my.assign(tf.stop_gradient(master)) for my,master in zip(self.train_vars,master.train_vars)]
         return tf.group(*ops)
 
     def __init__(self, nA,
