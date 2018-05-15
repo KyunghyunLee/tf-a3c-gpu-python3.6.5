@@ -19,8 +19,7 @@ class ActorCritic():
                   Conv2d('conv2',32,64,4,4,2,2,data_format='NHWC'),
                   lambda t : tf.nn.relu(t, name="relu2"),
                   Linear('linear1',64*11*11,256),
-                  lambda t : tf.nn.relu(t, name="relu3"),
-                  lambda t : tf.clip_by_value(t, 0, 6.0, name="clip"),
+                  lambda t : tf.nn.relu6(t, name="relu3"),
               ]
               _t = state
               for block in spec :
@@ -32,9 +31,11 @@ class ActorCritic():
         with tf.variable_scope("ema", reuse=reuse, custom_getter=getter):
           with tf.variable_scope(scope_name):
               _t = Linear('linear-policy',256,action_n)(block)
-              _logit = tf.clip_by_value(_t, EPSILON, 1.0)
-              softmax_policy = tf.nn.softmax(_logit)
-              log_softmax_policy = tf.nn.log_softmax(_logit) #For numerical stability
+              _logit = 1.0/(1.0 + tf.exp( -10.0 * _t ))
+              #softmax_policy = tf.nn.softmax(_logit)
+              softmax_policy = _logit/(EPSILON+tf.reduce_sum(_logit,axis=1,keepdims=True))
+              #log_softmax_policy = tf.nn.log_softmax(_logit) #For numerical stability
+              log_softmax_policy = tf.log(softmax_policy) #For numerical stability
               return softmax_policy, log_softmax_policy
 
     @staticmethod
@@ -75,12 +76,12 @@ class ActorCritic():
                 #advantage = self.target_value - self.value
                 advantage = tf.subtract( self.target_value, self.value )
                 abs_adv_err = tf.abs(advantage)
-                d_thresh = 30.0
-                advantage_hubber = tf.where(tf.less(abs_adv_err, d_thresh), 0.5*tf.square(advantage), d_thresh*(abs_adv_err - 0.5*d_thresh))
-                #advantage_hubber = tf.square(advantage)
+                d_thresh = 1.0
+                #advantage_hubber = tf.where(tf.less(abs_adv_err, d_thresh), 0.5*tf.square(advantage), d_thresh*(abs_adv_err - 0.5*d_thresh))
+                advantage_hubber = tf.square(advantage)
                 entropy = -tf.reduce_sum(self.policy * self.log_softmax_policy,axis=1)
                 # surrogate function with AudoDiff(not using formula, log_pi)
-                log_p_s_a = tf.reduce_sum(self.policy * tf.one_hot(self.action,nA, dtype=tf.float32),axis=1) # cross entropy(p=one_hot, q=policy) or KL-Divergency
+                log_p_s_a = tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA, dtype=tf.float32),axis=1) # cross entropy(p=one_hot, q=policy) or KL-Divergency
 
                 self.entropy_loss = tf.reduce_mean(entropy)
 
@@ -88,17 +89,17 @@ class ActorCritic():
                 #self.value_loss = tf.reduce_mean(tf.square(advantage_hubber))
                 self.value_loss = tf.reduce_mean(advantage_hubber)
 
-                loss = self.value_loss * 0.5 + self.policy_loss 
+                loss = self.value_loss + self.policy_loss 
                 self.gradients = tf.gradients(loss,self.train_vars)
                 self.var_norms = tf.global_norm(self.train_vars)
 
-                clipped_gs, grad_norm = tf.clip_by_global_norm(self.gradients,self.grad_clip*1.5)
+                clipped_gs, grad_norm = tf.clip_by_global_norm(self.gradients,self.grad_clip*2.0)
                 self.grad_norm = grad_norm
                 train_optim = master.optimizer.apply_gradients(zip(clipped_gs,master.train_vars))
                 with tf.control_dependencies([train_optim]):
                     self.train_op = tf.group( master.ema_op )
             else :
-                self.ema = tf.train.ExponentialMovingAverage(decay=0.9995, zero_debias=True)
+                self.ema = tf.train.ExponentialMovingAverage(decay=0.99, zero_debias=True)
                 self.ema_op = self.ema.apply(self.train_vars)
 
                 self.ema_var_list = [self.ema.average(e_var) for e_var in self.train_vars]
