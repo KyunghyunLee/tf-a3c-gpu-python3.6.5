@@ -48,7 +48,7 @@ def main(config,
                             entropy_beta=ENTROPY_BETA)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
-                       ActorCritic(nA,master=master_ac,device_name="/cpu:{}".format(i),scope_name='Thread%02d'%i,
+                       ActorCritic(nA,master=master_ac,device_name=DEVICE,scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
                                    entropy_beta=ENTROPY_BETA),
                        unroll_step=UNROLL_STEP,
