@@ -133,6 +133,7 @@ def get_default_param():
         'DISCOUNT_FACTOR':0.99,
         'DEVICE' : '/gpu:0',
 
+
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
 
