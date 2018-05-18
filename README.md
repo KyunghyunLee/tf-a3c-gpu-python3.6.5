@@ -17,6 +17,14 @@ Yet, it gave me a quiet competitive result (3 hours of training on breakout-v0 f
 
 Enjoy :)
 
+## Hyperparamter
+| Hyperparameter    |                                             |
+|-------------------|---------------------------------------------|
+| Optimization      | ADAM                                        |
+| Learning rate     | 1e-4                                        |
+| Gradient Clipping | Global gradient clipping: 1.0               |
+| Reward            | Average Reward: 418.8 Maximum Reward: 851.0 |
+
 ## Requirements
 
 - Python 2.7
