@@ -4,7 +4,6 @@ import scipy.misc
 import os
 import random
 from functools import partial
-#import imresize
 import cv2 as cv
 
 from history_buffer import *
@@ -14,10 +13,6 @@ def _preprocess_o(o,image_size) :
     # preprocessing code is partially adopted from https://github.com/carpedm20/deep-rl-tensorflow
     y = 0.2126 * o[:, :, 0] + 0.7152 * o[:, :, 1] + 0.0722 * o[:, :, 2]
     y = y.astype(np.uint8)
-    #Scipy actually requires WHC images, but it doesn't matter.
-    #resized = scipy.misc.imresize(y, image_size)
-    #resized = imresize.imresize(y, output_shape=image_size)
-    #resized = np.resize(y, image_size)
     resized = cv.resize(y, dsize=image_size, interpolation=cv.INTER_CUBIC)
     return np.expand_dims(resized.astype(np.float32),axis=2)
 
