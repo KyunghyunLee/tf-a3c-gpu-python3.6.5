@@ -33,6 +33,7 @@ Enjoy :)
 - scipy, pip (for image resize)
 - tqdm(optional)
 - better-exceptions(optional)
+- opencv-python (pip)
 
 ## Training Results
 
