@@ -8,6 +8,7 @@ from tqdm import tqdm
 from network import *
 from async_agent import *
 
+
 # A3C algorithm
 def main(config,
          RANDOM_SEED,
