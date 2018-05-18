@@ -21,7 +21,7 @@ I think his work(t3-a3-gpu) is nice because of saving my time more three times. 
 ## Requirements
 
 - Python 3.6.5
-- Tensorflow v1.2
+- Tensorflow v1.8
 - OpenAI Gym v0.9
 - scipy, pip (for image resize)
 - tqdm(optional)
