@@ -6,6 +6,8 @@ On the original paper, ["Asynchronous Methods for Deep Reinforcement Learning"](
 suggests CPU only implementations, since environment can only be executed on CPU which causes unevitable communication
 overhead between CPU and GPU otherwise.
 
+This source could run on python 3.6.5.
+
 I think his work(t3-a3-gpu) is nice because of saving my time more three times. Thank you!
 
 ## Hyperparamter
@@ -18,7 +20,7 @@ I think his work(t3-a3-gpu) is nice because of saving my time more three times. 
 
 ## Requirements
 
-- Python 2.7
+- Python 3.6.5
 - Tensorflow v1.2
 - OpenAI Gym v0.9
 - scipy, pip (for image resize)
