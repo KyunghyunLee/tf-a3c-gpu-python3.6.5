@@ -48,7 +48,7 @@ def main(config,
                             entropy_beta=ENTROPY_BETA)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
-                       ActorCritic(nA,master=master_ac,device_name="/cpu:{}".format(i),scope_name='Thread%02d'%i,
+                       ActorCritic(nA,master=master_ac,device_name=DEVICE,scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
                                    entropy_beta=ENTROPY_BETA),
                        unroll_step=UNROLL_STEP,
@@ -104,7 +104,7 @@ def main(config,
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess,coord=coord)
-        for step in tqdm(range(MAX_ITERATION)) :
+        for step in tqdm(range(MAX_ITERATION), dynamic_cols=True) :
             if coord.should_stop() :
                 break
 
@@ -132,6 +132,7 @@ def get_default_param():
         'GAME' : 'Breakout-v0',
         'DISCOUNT_FACTOR':0.99,
         'DEVICE' : '/gpu:0',
+
 
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
