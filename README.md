@@ -1,4 +1,4 @@
-# tf-a3c-gpu
+# tf-a3c-gpu(forked from https://github.com/hiwonjoon/tf-a3c-gpu)
 
 Tensorflow implementation of A3C algorithm using GPU (haven't tested, but it would be also trainable with CPU).
 
