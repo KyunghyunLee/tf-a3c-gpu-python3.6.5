@@ -105,7 +105,7 @@ def main(config,
 
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess,coord=coord)
-        for step in tqdm(range(MAX_ITERATION), dynamic_cols=True) :
+        for step in tqdm(range(MAX_ITERATION), dynamic_ncols=True) :
             if coord.should_stop() :
                 break
 

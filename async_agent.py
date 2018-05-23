@@ -52,6 +52,7 @@ class A3CGroupAgent():
 
     def enqueue_op(self,queue) :
         def _func():
+            self.ac.sync()
             # Initialize states, if the game is done at the last iteration
             for i,_ in enumerate(self.envs) :
                 if self.states[i] is None :
@@ -103,7 +104,6 @@ class A3CGroupAgent():
             target_values = np.stack(values,axis=0).astype(np.float32)
 
             policy_loss, entropy_loss, value_loss, v_norm, g_norm = self.ac.update(states,actions,target_values)
-            self.ac.sync()
 
             return policy_loss, entropy_loss, value_loss, v_norm, g_norm
 
