@@ -44,9 +44,9 @@ class A3CGroupAgent():
         self.step = 0
 
     def pick_epsilon(self):
-      global_step = min(self.max_iter, self.steps)
+      global_step = min(self.max_iter, self.step)
       epsilon = (self.start_egreedy - self.end_egreedy) * (1.0 - global_step / float(self.max_iter)) ** (1.0) + self.end_egreedy
-      return epsilone
+      return epsilon
 
     def pick_action(self,s,greedy=False, epsilon=0.01) :
         pi_given_s = self.policy_func(s)
