@@ -17,7 +17,7 @@ def _preprocess_o(o,image_size) :
     return np.expand_dims(resized.astype(np.float32),axis=2)
 
 class A3CGroupAgent():
-    def __init__(self,envs,actor_critic,unroll_step,discount_factor,
+    def __init__(self,envs,actor_critic,unroll_step,discount_factor,start_egreedy,end_egreedy,max_iter,
                  seed=None,image_size=(84,84),frames_for_state=4) :
         self.envs = envs
         self.nA = envs[0].action_space.n
@@ -38,6 +38,15 @@ class A3CGroupAgent():
         #Hmm... I don't like this pattern. Anyway, list itself is thread-safe, so it is correct implementation.
         self.episode_rewards = [[] for _ in envs]
         self.episode_reward = [0. for _ in envs]
+        self.start_egreedy = start_egreedy
+        self.end_egreedy = end_egreedy
+        self.max_iter = max_iter
+        self.step = 0
+
+    def pick_epsilon(self):
+      global_step = min(self.max_iter, self.steps)
+      epsilon = (self.start_egreedy - self.end_egreedy) * (1.0 - global_step / float(self.max_iter)) ** (1.0) + self.end_egreedy
+      return epsilone
 
     def pick_action(self,s,greedy=False, epsilon=0.01) :
         pi_given_s = self.policy_func(s)
@@ -66,8 +75,8 @@ class A3CGroupAgent():
             # Proceed the multiple games.
             done_envs = set()
             sras = [ [] for _ in self.envs ] #state reward action pairs for each envs.
-            for step in range(self.unroll_step) :
-                actions = self.pick_action(np.stack(self.states,axis=0))
+            for step in range(self.unroll_step):
+                actions = self.pick_action(np.stack(self.states,axis=0), greedy=True, self.pick_epsilon())
 
                 for i,(env,action) in enumerate(zip(self.envs,actions)) :
                     if( i in done_envs ) :
@@ -108,6 +117,8 @@ class A3CGroupAgent():
             return policy_loss, entropy_loss, value_loss, v_norm, g_norm
 
         data = tf.py_func(_func,[],[tf.float32,tf.float32,tf.float32,tf.float32,tf.float32],stateful=True)
+
+        self.step += 1
         return queue.enqueue(data)
 
     def num_episodes(self):

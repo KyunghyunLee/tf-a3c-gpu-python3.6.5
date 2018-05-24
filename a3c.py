@@ -52,6 +52,9 @@ def main(config,
                        ActorCritic(nA,master=master_ac,device_name=DEVICE,scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
                                    entropy_beta=ENTROPY_BETA),
+                       start_egreedy = 0.01,
+                       end_egreedy = 0.0001,
+                       max_iter = MAX_ITERATION,
                        unroll_step=UNROLL_STEP,
                        discount_factor=DISCOUNT_FACTOR,
                        seed=i)
@@ -146,7 +149,7 @@ def get_default_param():
         'NUM_THREADS':4,
         'AGENT_PER_THREADS':64,
         'UNROLL_STEP':5,
-        'MAX_ITERATION':1000000
+        'MAX_ITERATION':200000000
     }
 
 if __name__ == "__main__":
