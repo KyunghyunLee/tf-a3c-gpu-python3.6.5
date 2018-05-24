@@ -76,7 +76,7 @@ class A3CGroupAgent():
             done_envs = set()
             sras = [ [] for _ in self.envs ] #state reward action pairs for each envs.
             for step in range(self.unroll_step):
-                actions = self.pick_action(np.stack(self.states,axis=0), greedy=True, self.pick_epsilon())
+                actions = self.pick_action(np.stack(self.states,axis=0), epsilon=self.pick_epsilon(), greedy=True)
 
                 for i,(env,action) in enumerate(zip(self.envs,actions)) :
                     if( i in done_envs ) :
