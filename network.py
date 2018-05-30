@@ -28,15 +28,16 @@ class ActorCritic():
     def _build_policy(block,action_n,scope_name):
         with tf.variable_scope(scope_name):
             _t = Linear('linear-policy',256,action_n)(block)
-            softmax_policy = tf.nn.softmax(_t+EPSILON)
-            log_softmax_policy = tf.nn.log_softmax(_t+EPSILON) #For numerical stability
+            softmax_policy = tf.nn.softmax(_t + EPSILON)
+            log_softmax_policy = tf.nn.log_softmax(_t + EPSILON) #For numerical stability
             return softmax_policy, log_softmax_policy
 
     @staticmethod
     def _build_value(block,scope_name):
         with tf.variable_scope(scope_name):
-            _t = tf.squeeze(Linear('linear-value',256,1)(block),axis=1)
-            return _t
+            _s = tf.get_variable('linear-scale', initializer=tf.constant_initializer(1.0))
+            _t = tf.clip_by_value(tf.squeeze(Linear('linear-value',256,1)(block),axis=1), -1.0, 1.0)
+            return _s * _t
 
     def _sync_op(self,master) :
         ops = [ my.assign(tf.stop_gradient(master)) for my,master in zip(self.train_vars,master.train_vars)]
@@ -58,15 +59,17 @@ class ActorCritic():
                 self.action = tf.placeholder(tf.int32,[None,])
                 self.target_value = tf.placeholder(tf.float32,[None,])
 
-                advantage = self.target_value - self.value
+                self.td_error = self.target_value - self.value
+                advantage = tf.clip_by_value(self.td_error, -5.0, 5.0)
                 entropy = tf.reduce_sum(-1. * self.policy * self.log_softmax_policy,axis=1)
                 log_p_s_a = tf.reduce_sum(self.log_softmax_policy * tf.one_hot(self.action,nA),axis=1)
 
-                self.policy_loss = tf.reduce_mean(tf.stop_gradient(advantage)*log_p_s_a)
-                self.entropy_loss = tf.reduce_mean(entropy)
+                self.adv_ph = tf.clip_by_value(self.td_error, -1.0, 1.0)
+                self.policy_loss = tf.reduce_mean(tf.stop_gradient(self.adv_ph)*log_p_s_a)
+                self.entropy_loss = entropy_beta*tf.reduce_mean(entropy)
                 self.value_loss = tf.reduce_mean(advantage**2)
 
-                loss = -self.policy_loss - entropy_beta* self.entropy_loss + self.value_loss
+                loss = -self.policy_loss -self.entropy_loss + self.value_loss
                 self.gradients = tf.gradients(loss,self.train_vars)
                 self.var_norms = tf.global_norm(self.train_vars)
                 clipped_gs, grad_norm = tf.clip_by_global_norm(self.gradients,grad_clip)

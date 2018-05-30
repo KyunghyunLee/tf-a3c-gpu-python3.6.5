@@ -1,3 +1,4 @@
+import pdb
 import tensorflow as tf
 import numpy as np
 import scipy.misc
@@ -38,6 +39,7 @@ class A3CGroupAgent():
         #Hmm... I don't like this pattern. Anyway, list itself is thread-safe, so it is correct implementation.
         self.episode_rewards = [[] for _ in envs]
         self.episode_reward = [0. for _ in envs]
+        self.episode_counter = [0. for _ in envs]
         self.start_egreedy = start_egreedy
         self.end_egreedy = end_egreedy
         self.max_iter = max_iter
@@ -67,6 +69,7 @@ class A3CGroupAgent():
                 if self.states[i] is None :
                     self.episode_rewards[i].append( self.episode_reward[i] )
                     self.episode_reward[i] = 0.
+                    self.episode_counter[i] = 0
 
                     self.hist_bufs[i].clear()
                     o = self.envs[i].reset()
@@ -84,6 +87,7 @@ class A3CGroupAgent():
 
                     o, reward, done, _ = env.step(action)
                     self.episode_reward[i] += reward
+                    self.episode_counter[i] += 1
 
                     reward = max(-1,min(1,reward)) #reward clippint -1 to 1
                     sras[i].append((self.states[i],reward,action))
@@ -101,6 +105,8 @@ class A3CGroupAgent():
                 if i in done_envs :
                     vs[i] = 0.
                     self.states[i] = None
+                if self.episode_reward[i] == 0 and self.step < 10000:
+                  vs[i] = np.random.uniform(-1.0,1.0)
 
                 for s,r,a in sra[::-1] :
                     vs[i] = r + self.discount_factor*vs[i]
