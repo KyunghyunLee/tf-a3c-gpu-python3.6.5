@@ -1,6 +1,12 @@
 # Obstacle Tower Env
 ObstacleTower/
 
+# Log dir of A3C
+log/
+
+#JetBrain IDE
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
