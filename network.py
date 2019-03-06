@@ -16,8 +16,12 @@ class ActorCritic():
                 lambda t : tf.nn.relu(t),
                 Conv2d('conv2',32,64,4,4,2,2,data_format='NHWC'),
                 lambda t : tf.nn.relu(t),
+                # Conv2d('conv3', 64, 64, 3, 3, 1, 1, data_format='NHWC'),
+                # lambda t: tf.nn.relu(t),
                 Linear('linear1',fc_num,256),
                 lambda t : tf.nn.relu(t),
+                # Linear('linear2', 256, 256),
+                # lambda t: tf.nn.relu(t),
             ]
             _t = state
             for block in spec :

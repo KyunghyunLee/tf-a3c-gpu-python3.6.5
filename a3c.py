@@ -147,7 +147,7 @@ def get_default_param():
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
 
-        'LEARNING_RATE': 1e-5,
+        'LEARNING_RATE': 1e-8,
         'DECAY':0.99,
         'GRAD_CLIP':1.0,
         'ENTROPY_BETA':0.01,
@@ -158,7 +158,7 @@ def get_default_param():
         'AGENT_PER_THREADS':1,
 
         'UNROLL_STEP':5,
-        'MAX_ITERATION':1000000
+        'MAX_ITERATION':10000000
     }
 
 if __name__ == "__main__":
