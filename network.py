@@ -8,7 +8,7 @@ from commons.ops import *
 EPSILON=1e-7
 class ActorCritic():
     @staticmethod
-    def _build_shared_block(state,scope_name):
+    def _build_shared_block(state,scope_name, fc_num=64*11*11):
         channels = state.get_shape().as_list()[3]
         with tf.variable_scope(scope_name) as scope:
             spec = [
@@ -16,7 +16,7 @@ class ActorCritic():
                 lambda t : tf.nn.relu(t),
                 Conv2d('conv2',32,64,4,4,2,2,data_format='NHWC'),
                 lambda t : tf.nn.relu(t),
-                Linear('linear1',64*11*11,256),
+                Linear('linear1',fc_num,256),
                 lambda t : tf.nn.relu(t),
             ]
             _t = state
@@ -44,11 +44,14 @@ class ActorCritic():
 
     def __init__(self, nA,
                  learning_rate,decay,grad_clip,entropy_beta,
-                 state_shape=[84,84,4],
+                 state_shape,
                  master=None, device_name='/gpu:0', scope_name='master'):
         with tf.device(device_name) :
             self.state = tf.placeholder(tf.float32,[None]+state_shape)
-            block, self.scope  = ActorCritic._build_shared_block(self.state,scope_name)
+            if state_shape[0] == 168:
+                block, self.scope  = ActorCritic._build_shared_block(self.state,scope_name, fc_num=64*21*21)
+            else:
+                block, self.scope = ActorCritic._build_shared_block(self.state, scope_name)
             self.policy, self.log_softmax_policy = ActorCritic._build_policy(block,nA,scope_name)
             self.value = ActorCritic._build_value(block,scope_name)
 

@@ -8,6 +8,7 @@ from tqdm import tqdm
 from network import *
 from async_agent import *
 
+import gym_obstacle_tower
 
 # A3C algorithm
 def main(config,
@@ -26,13 +27,14 @@ def main(config,
          AGENT_PER_THREADS,
          UNROLL_STEP,
          MAX_ITERATION,
+         IMAGE_SIZE=(84, 84),
          **kwargs):
 
     # Initialize Seed
     tf.set_random_seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.reset_default_graph()
-    conf = tf.ConfigProto(device_count={"CPU": 4, "GPU": 1},
+    conf = tf.ConfigProto(device_count={"CPU": 12, "GPU": 2},
         inter_op_parallelism_threads=128,
         intra_op_parallelism_threads=128)
     sess = tf.Session(config=conf)
@@ -44,16 +46,21 @@ def main(config,
     global_step = tf.Variable(0, trainable=False)
     learning_rate = tf.train.polynomial_decay(LEARNING_RATE,global_step,MAX_ITERATION//2,
                                               LEARNING_RATE*0.1)
+    state_shape = [*IMAGE_SIZE, 4]
+
     master_ac = ActorCritic(nA,device_name=DEVICE,
                             learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
-                            entropy_beta=ENTROPY_BETA)
+                            entropy_beta=ENTROPY_BETA,
+                            state_shape=state_shape)
     group_agents = [
         A3CGroupAgent([gym.make(GAME) for _ in range(AGENT_PER_THREADS)],
                        ActorCritic(nA,master=master_ac,device_name=DEVICE,scope_name='Thread%02d'%i,
                                    learning_rate=learning_rate,decay=DECAY,grad_clip=GRAD_CLIP,
-                                   entropy_beta=ENTROPY_BETA),
+                                   entropy_beta=ENTROPY_BETA,
+                                   state_shape=state_shape),
                        unroll_step=UNROLL_STEP,
                        discount_factor=DISCOUNT_FACTOR,
+                       image_size=IMAGE_SIZE,
                        seed=i)
         for i in range(NUM_THREADS)]
 
@@ -113,7 +120,7 @@ def main(config,
             if( step % SUMMARY_PERIOD == 0 ):
                 summary_writer.add_summary(summary_str,step)
                 summary_writer_eps.add_summary(summary_str,total_eps)
-                tqdm.write('step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.1f max_r:%2.1f, v_norm:%.5f, g_norm:%.5f'%
+                tqdm.write('step(%7d) policy_loss:%1.5f,entropy_loss:%1.5f,value_loss:%1.5f, te:%5d avg_r:%2.2f max_r:%2.2f, v_norm:%.5f, g_norm:%.5f'%
                         (step,pl,el,vl,total_eps,avg_r,max_r,v_norm,g_norm))
 
             if( (step+1) % SAVE_PERIOD == 0 ):
@@ -130,7 +137,9 @@ def main(config,
 
 def get_default_param():
     return {
-        'GAME' : 'Breakout-v0',
+        # 'GAME' : 'Breakout-v0',
+        'GAME': 'obstacle-tower-v0',
+        'IMAGE_SIZE': (168, 168),
         'DISCOUNT_FACTOR':0.99,
         'DEVICE' : '/gpu:0',
 
@@ -138,13 +147,16 @@ def get_default_param():
         'SAVE_PERIOD':20000,
         'SUMMARY_PERIOD':100,
 
-        'LEARNING_RATE': 1e-4,
+        'LEARNING_RATE': 1e-5,
         'DECAY':0.99,
         'GRAD_CLIP':1.0,
         'ENTROPY_BETA':0.01,
 
-        'NUM_THREADS':4,
-        'AGENT_PER_THREADS':64,
+        # 'NUM_THREADS':4,
+        # 'AGENT_PER_THREADS':64,
+        'NUM_THREADS':6,
+        'AGENT_PER_THREADS':1,
+
         'UNROLL_STEP':5,
         'MAX_ITERATION':1000000
     }
